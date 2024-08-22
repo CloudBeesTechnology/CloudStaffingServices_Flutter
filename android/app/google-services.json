@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "432925841026",
+    "project_id": "cloudstaffingservices-73a3c",
+    "storage_bucket": "cloudstaffingservices-73a3c.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:432925841026:android:513bcf5ca853f2b298869b",
+        "android_client_info": {
+          "package_name": "com.example.css_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDdw5DJg44x144u8-YpTy4UUUuaGEhbEnA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
