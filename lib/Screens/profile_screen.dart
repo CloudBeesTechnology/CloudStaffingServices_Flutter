@@ -1,6 +1,9 @@
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:css_app/constants/colors.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 
@@ -17,13 +20,14 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  TextEditingController yourNmae = TextEditingController();
+  TextEditingController yourName = TextEditingController();
   TextEditingController service = TextEditingController();
   TextEditingController city = TextEditingController();
   TextEditingController state = TextEditingController();
   TextEditingController district = TextEditingController();
 
   File? _image;
+  bool isloading=false;
 
   Future<void> _pickImage() async {
     final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
@@ -33,6 +37,84 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _image = File(pickedFile.path);
       });
     }
+  }
+
+  Future<void> setUserData() async{
+    Get.dialog(
+      Center(child: CircularProgressIndicator(color: Colors.yellow,)),
+      barrierDismissible: false,
+    );
+
+   try{
+     if(yourName.text.isNotEmpty && service.text.isNotEmpty && city.text.isNotEmpty && state.text.isNotEmpty && district.text.isNotEmpty){
+       FirebaseAuth auth=FirebaseAuth.instance;
+       FirebaseFirestore firestore=FirebaseFirestore.instance;
+     await  firestore.collection('users').doc().set({
+         'name':yourName.text.trim(),
+         'services':service.text.trim(),
+         'city':city.text.trim(),
+         'state': state.text.trim(),
+         'district':district.text.trim(),
+         'userId':auth.currentUser!.uid,
+       }).then((value){
+         setState(() {
+           yourName.clear();
+           service.clear();
+           city.clear();
+           state.clear();
+           district.clear();
+         });
+         Get.back();
+
+         Get.dialog(
+              AlertDialog(
+                title: Text('Sucess'),
+                content: Text('profile added succesfuly'),
+                actions: [
+                  TextButton(
+                      onPressed: (){
+                        Get.back();
+                        Get.off(HomeScreen());
+                      },
+                      child: Text('Ok'))
+                ],
+
+              )
+         );
+       });
+     }else{
+       Get.back();
+       Get.dialog(
+         AlertDialog(
+           title: Text('Error'),
+           content: Text('Please fill all the fields'),
+           actions: [
+             TextButton(
+                 onPressed: (){
+                   Get.back();
+                 },
+                 child: Text('ok'))
+           ],
+         )
+       );
+    }
+   }catch(e){
+     Get.back();
+     Get.dialog(
+       AlertDialog(
+         title: Text('Error'),
+         content: Text('$e'),
+         actions: [
+           TextButton(
+               onPressed: (){
+                 Get.back();
+               },
+               child: Text('Ok'))
+         ],
+       )
+     );
+   }
+
   }
 
   @override
@@ -58,8 +140,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
               Stack(
                 children: [
                   Container(
-                    width: SizeConfig.width(36),
-                    height: SizeConfig.height(18),
+                    width: SizeConfig.width(37),
+                    height: SizeConfig.height(18.5),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(100),
                       color: Color(0xFE9E7E7).withOpacity(1.0),
@@ -109,7 +191,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               SizedBox(height: SizeConfig.height(2.5),),
               Padding(
                 padding: const EdgeInsets.all(5.0),
-                child: MyTextField(controller: yourNmae, text: 'Enter Your Nmae', color: textfield2,),
+                child: MyTextField(controller: yourName, text: 'Enter Your Nmae', color: textfield2,),
               ),
               Padding(
                 padding: const EdgeInsets.all(5.0),
@@ -129,8 +211,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               SizedBox(height: SizeConfig.height(3.0),),
                 Myelavatedbutton(text: 'Continue',
-                  ontap: (){
-                  Navigator.push(context, MaterialPageRoute(builder: (context)=>HomeScreen()));
+                  ontap: () async{
+                      await setUserData();
                 },
                   height: SizeConfig.height(5.5),
                   width: SizeConfig.width(80),

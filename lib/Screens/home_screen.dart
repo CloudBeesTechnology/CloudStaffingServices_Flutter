@@ -254,7 +254,7 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: Colors.white,
         color: Colors.black,
         buttonBackgroundColor: Colors.yellow.shade700,
-        height: SizeConfig.height(7),
+        height: SizeConfig.height(6.5),
         animationDuration: Duration(milliseconds: 500),
         onTap: (index) {
           print(index);
@@ -307,7 +307,7 @@ class _HomeScreenState extends State<HomeScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           SizedBox(
-            width: SizeConfig.width(14),
+            width: SizeConfig.width(11),
             child: icon,
           ),
           Text(

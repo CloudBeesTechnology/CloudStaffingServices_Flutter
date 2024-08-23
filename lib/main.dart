@@ -32,7 +32,7 @@ class MyApp extends StatelessWidget {
         // primarySwatch: Colors.white,
       ),
 
-      home: WelcomeScreen(),
+      home: PasswordScreen(),
     );
   }
 }
