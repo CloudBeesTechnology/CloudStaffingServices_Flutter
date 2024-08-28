@@ -1,6 +1,10 @@
+import 'dart:developer';
+
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:css_app/constants/colors.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
@@ -33,11 +37,59 @@ class _HomeScreenState extends State<HomeScreen> {
     {'text': 'Elder care', 'icon': Image.asset('assets/eldercare.png',color: primary1,)},
   ];
 
+  String userName='';
+  String userCity='';
+  String userImage='';
+
+  void getUserData() async {
+    try {
+      FirebaseAuth auth = FirebaseAuth.instance;
+      FirebaseFirestore firestore = FirebaseFirestore.instance;
+
+      // Get the current user ID
+      String userId = auth.currentUser?.uid ?? '';
+
+      if (userId.isNotEmpty) {
+        // Fetch user data
+        DocumentSnapshot userData = await firestore.collection('users').doc(userId).get();
+
+        if (userData.exists) {
+          // Cast the data to Map<String, dynamic> to access fields
+          Map<String, dynamic>? data = userData.data() as Map<String, dynamic>?;
+
+          setState(() {
+            // Update UI with user data
+            userName = data?['name'] ?? '';
+            userCity = data?['city'] ?? '';
+            userImage = data?['imageUrl'] ?? ''; // Ensure 'imageUrl' is the correct field name
+          });
+        } else {
+          // Handle the case where the document does not exist
+          log('No such document!');
+        }
+      } else {
+        // Handle the case where there is no current user
+        log('No user is currently logged in!');
+      }
+    } catch (e) {
+      // Handle any errors that occur during data fetching
+      log('Error fetching user data: $e');
+    }
+  }
+
+
+
 
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
     });
+  }
+
+  @override
+  void initState(){
+    super.initState();
+    getUserData();
   }
 
   @override
@@ -57,18 +109,26 @@ class _HomeScreenState extends State<HomeScreen> {
                     SizedBox(width: SizeConfig.width(1.5),),
                     CircleAvatar(
                       radius: 20,
+                      backgroundImage: userImage.isNotEmpty
+                          ? NetworkImage(userImage)
+                          : null,
                       backgroundColor: Colors.white,
-                      child: Icon(
-                        Icons.person, size: 40, color: Colors.grey.shade700,),
+                      child: userImage.isEmpty
+                          ? Icon(
+                        Icons.person,
+                        size: 40,
+                        color: Colors.grey.shade700,
+                      )
+                          : null,
                     ),
                     Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Kavitha M', style: TextStyle(
+                          Text(userName, style: TextStyle(
                               color: home, fontSize: 18,fontFamily: 'Inter',)),
-                          Text('Puducherry', style: TextStyle(
+                          Text(userCity, style: TextStyle(
                               color: Color(0xF757575).withOpacity(0.6), fontSize: 14,fontFamily: 'Inter')),
                         ],
                       ),

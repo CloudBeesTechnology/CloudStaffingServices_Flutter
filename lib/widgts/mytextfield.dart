@@ -35,7 +35,11 @@ class MyTextField extends StatelessWidget {
               child:Theme(
             data: Theme.of(context).copyWith(
               inputDecorationTheme: InputDecorationTheme(
-                border: InputBorder.none
+                border: InputBorder.none,
+                focusedBorder: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                errorBorder: InputBorder.none,
+                disabledBorder: InputBorder.none,
               )
                ),
               child: TextField(

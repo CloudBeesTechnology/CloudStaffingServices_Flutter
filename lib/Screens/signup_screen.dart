@@ -63,11 +63,8 @@ class _SignupScreenState extends State<SignupScreen> {
       isLoading = true;
     });
 
-    // Add a small delay to ensure spinner is visible
-    await Future.delayed(Duration(milliseconds: 200));
-
     try {
-      UserCredential userCredential;
+      UserCredential? userCredential;
 
       if (email.text.contains('@')) {
         // Email registration
@@ -76,30 +73,33 @@ class _SignupScreenState extends State<SignupScreen> {
           password: password.text.trim(),
         );
         _logger.i('Email registration successful: ${userCredential.user?.email}');
-
-
         await Future.delayed(Duration(milliseconds: 200));
-        Get.to(() => OtpScreen(verificationId: ''));
+        Get.to(() => PasswordScreen());
       } else {
         // Phone number registration
         await _auth.verifyPhoneNumber(
           phoneNumber: email.text.trim(),
           verificationCompleted: (PhoneAuthCredential credential) async {
             userCredential = await _auth.signInWithCredential(credential);
-            _logger.i('Phone verification completed automatically: ${userCredential.user?.phoneNumber}');
-
-            // Delay to ensure spinner shows up
+            _logger.i('Phone verification completed automatically: ${userCredential?.user?.phoneNumber}');
+            setState(() {
+              isLoading = false;
+            });
             await Future.delayed(Duration(milliseconds: 200));
             Get.to(() => PasswordScreen());
           },
           verificationFailed: (FirebaseAuthException e) {
             _logger.e('Phone verification failed: ${e.message}');
+            setState(() {
+              isLoading = false;
+            });
             _showErrorDialog("Verification failed: ${e.message}");
           },
           codeSent: (String verificationId, int? resendToken) async {
             _logger.i('OTP code sent to phone number');
-
-
+            setState(() {
+              isLoading = false;
+            });
             await Future.delayed(Duration(milliseconds: 200));
             Get.to(() => OtpScreen(verificationId: verificationId));
           },
@@ -110,22 +110,25 @@ class _SignupScreenState extends State<SignupScreen> {
       }
     } on FirebaseAuthException catch (e) {
       _logger.e('Registration failed: ${e.message}');
+      setState(() {
+        isLoading = false;
+      });
       _showErrorDialog("Registration failed: ${e.message}");
     } catch (e) {
       _logger.e('Unexpected error: $e');
+      setState(() {
+        isLoading = false;
+      });
       _showErrorDialog("An unexpected error occurred: $e");
     } finally {
       setState(() {
-        isLoading = false ; // Hide spinner
+        isLoading = false;
         name.clear();
         email.clear();
         password.clear();
       });
     }
   }
-
-
-
 
 
   @override
@@ -232,7 +235,7 @@ class _SignupScreenState extends State<SignupScreen> {
                               text: 'Register',
                               height: SizeConfig.height(5.5),
                               width: SizeConfig.width(80),
-                              ontap: isLoading ? null : _register,  // Disable button when loading
+                              ontap: _register,  // Disable button when loading
                               color: buttons,
                               color2: secondary,
                               fontSize: 16,

@@ -1,7 +1,10 @@
 
+import 'dart:developer';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:css_app/constants/colors.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
@@ -30,7 +33,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool isloading=false;
 
   Future<void> _pickImage() async {
-    final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
+    ImagePicker imagePicker=ImagePicker();
+    final pickedFile = await imagePicker.pickImage(source: ImageSource.gallery);
 
     if (pickedFile != null) {
       setState(() {
@@ -39,83 +43,149 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  Future<void> setUserData() async{
+  Future<void> setUserData() async {
     Get.dialog(
-      Center(child: CircularProgressIndicator(color: Colors.yellow,)),
+      Center(child: CircularProgressIndicator(color: Colors.yellow)),
       barrierDismissible: false,
     );
 
-   try{
-     if(yourName.text.isNotEmpty && service.text.isNotEmpty && city.text.isNotEmpty && state.text.isNotEmpty && district.text.isNotEmpty){
-       FirebaseAuth auth=FirebaseAuth.instance;
-       FirebaseFirestore firestore=FirebaseFirestore.instance;
-     await  firestore.collection('users').doc().set({
-         'name':yourName.text.trim(),
-         'services':service.text.trim(),
-         'city':city.text.trim(),
-         'state': state.text.trim(),
-         'district':district.text.trim(),
-         'userId':auth.currentUser!.uid,
-       }).then((value){
-         setState(() {
-           yourName.clear();
-           service.clear();
-           city.clear();
-           state.clear();
-           district.clear();
-         });
-         Get.back();
+    try {
+      if (yourName.text.isNotEmpty &&
+          service.text.isNotEmpty &&
+          city.text.isNotEmpty &&
+          state.text.isNotEmpty &&
+          district.text.isNotEmpty) {
 
-         Get.dialog(
+        FirebaseAuth auth = FirebaseAuth.instance;
+        FirebaseFirestore firestore = FirebaseFirestore.instance;
+
+        String? imageUrl;
+
+        if (_image != null) {
+          try {
+            // Ensure the reference path is correct
+            String fileName = '${auth.currentUser!.uid}_${DateTime.now().millisecondsSinceEpoch}.png';
+            Reference storageRef = FirebaseStorage.instance.ref().child('user_images').child(fileName);
+            UploadTask uploadTask = storageRef.putFile(_image!);
+
+            await uploadTask.whenComplete(() async {
+              imageUrl = await storageRef.getDownloadURL();
+              log('Image uploaded successfully: $imageUrl');
+            }).catchError((error) {
+              log('Error uploading image: $error');
+              throw error;
+            });
+          } catch (e) {
+            Get.back();
+            Get.dialog(
               AlertDialog(
-                title: Text('Sucess'),
-                content: Text('profile added succesfuly'),
+                title: Text('Error'),
+                content: Text('Failed to upload image: $e'),
                 actions: [
                   TextButton(
-                      onPressed: (){
-                        Get.back();
-                        Get.off(HomeScreen());
-                      },
-                      child: Text('Ok'))
+                    onPressed: () {
+                      Get.back();
+                    },
+                    child: Text('Ok'),
+                  ),
                 ],
+              ),
+            );
+            return;
+          }
+        }
 
-              )
-         );
-       });
-     }else{
-       Get.back();
-       Get.dialog(
-         AlertDialog(
-           title: Text('Error'),
-           content: Text('Please fill all the fields'),
-           actions: [
-             TextButton(
-                 onPressed: (){
-                   Get.back();
-                 },
-                 child: Text('ok'))
-           ],
-         )
-       );
+        // Store user data including imageUrl (if any) in Firestore
+        await firestore.collection('users').doc(auth.currentUser!.uid).set({
+          'name': yourName.text.trim(),
+          'services': service.text.trim(),
+          'city': city.text.trim(),
+          'state': state.text.trim(),
+          'district': district.text.trim(),
+          'userId': auth.currentUser!.uid,
+          'imageUrl': imageUrl,
+        }).then((value) {
+          setState(() {
+            yourName.clear();
+            service.clear();
+            city.clear();
+            state.clear();
+            district.clear();
+            _image = null;
+          });
+          Get.back();
+
+          Get.dialog(
+            AlertDialog(
+              title: Text('Success'),
+              content: Text('Profile added successfully'),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Get.back();
+                    Get.off(HomeScreen());
+                  },
+                  child: Text('Ok'),
+                ),
+              ],
+            ),
+          );
+        }).catchError((error) {
+          log('Error storing user data: $error');
+          Get.back();
+          Get.dialog(
+            AlertDialog(
+              title: Text('Error'),
+              content: Text('Failed to store user data: $error'),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Get.back();
+                  },
+                  child: Text('Ok'),
+                ),
+              ],
+            ),
+          );
+        });
+      } else {
+        Get.back();
+        Get.dialog(
+          AlertDialog(
+            title: Text('Error'),
+            content: Text('Please fill all the fields'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Get.back();
+                },
+                child: Text('Ok'),
+              ),
+            ],
+          ),
+        );
+      }
+    } catch (e) {
+      Get.back();
+      Get.dialog(
+        AlertDialog(
+          title: Text('Error'),
+          content: Text('$e'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Get.back();
+              },
+              child: Text('Ok'),
+            ),
+          ],
+        ),
+      );
     }
-   }catch(e){
-     Get.back();
-     Get.dialog(
-       AlertDialog(
-         title: Text('Error'),
-         content: Text('$e'),
-         actions: [
-           TextButton(
-               onPressed: (){
-                 Get.back();
-               },
-               child: Text('Ok'))
-         ],
-       )
-     );
-   }
-
   }
+
+
+
 
   @override
   Widget build(BuildContext context) {
