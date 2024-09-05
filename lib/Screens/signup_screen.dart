@@ -321,7 +321,10 @@ class _SignupScreenState extends State<SignupScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
                     SizedBox(width: SizeConfig.width(6)),
-                        iconButton(FontAwesomeIcons.facebook, Colors.blue, () {}),
+                        iconButton(FontAwesomeIcons.facebook, Colors.blue,
+                                () async{
+                          authService.signInWithFacebook();
+                        }),
                     Card(
                       elevation: 2,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)),

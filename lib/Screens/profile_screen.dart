@@ -96,9 +96,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
         }
 
         // Store user data including imageUrl (if any) in Firestore
-        await firestore.collection('users').doc(auth.currentUser!.uid).set({
+        await firestore.collection('dummy users').doc(auth.currentUser!.uid).set({
           'name': yourName.text.trim(),
-          'services': service.text.trim(),
+          'type': service.text.trim(),
           'city': city.text.trim(),
           'state': state.text.trim(),
           'district': district.text.trim(),

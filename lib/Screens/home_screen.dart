@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:css_app/constants/colors.dart';
+import 'package:css_app/services/service_list.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -41,6 +42,8 @@ class _HomeScreenState extends State<HomeScreen> {
   String userCity='';
   String userImage='';
 
+
+
   void getUserData() async {
     try {
       FirebaseAuth auth = FirebaseAuth.instance;
@@ -51,7 +54,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
       if (userId.isNotEmpty) {
         // Fetch user data
-        DocumentSnapshot userData = await firestore.collection('users').doc(userId).get();
+        DocumentSnapshot userData = await firestore.collection('dummy users').doc(userId).get();
 
         if (userData.exists) {
           // Cast the data to Map<String, dynamic> to access fields
@@ -207,7 +210,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
                   SizedBox(width: SizeConfig.width(5)),
-                  Text('Our Services', style: TextStyle(color: home,
+                  Text('Services', style: TextStyle(color: home,
                       fontSize: 18,
                     fontFamily: 'Inter'
                       )),
@@ -222,12 +225,25 @@ class _HomeScreenState extends State<HomeScreen> {
                   itemBuilder: (context, index) {
                     return Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                      child: ourService(
-                          services[index]['text'], services[index]['icon']),
+                      child: GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ServiceListScreen(serviceType: services[index]['text']),
+                            ),
+                          );
+                        },
+                        child: ourService(
+                          services[index]['text'],
+                          services[index]['icon'],
+                        ),
+                      ),
                     );
                   },
                 ),
               ),
+
 
               SizedBox(height: SizeConfig.height(0.5)),
               Row(
