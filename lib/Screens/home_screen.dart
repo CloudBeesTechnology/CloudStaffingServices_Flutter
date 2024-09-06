@@ -12,6 +12,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../constants/height_width.dart';
 import '../widgts/myslider.dart';
 import '../widgts/mytextfield.dart';
+import 'favourite_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -23,6 +24,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   TextEditingController search = TextEditingController();
   int _selectedIndex = 0;
+  final currentUserId = FirebaseAuth.instance.currentUser?.uid;
   List<Map<String, dynamic>> services = [
     {'text': 'Clean house', 'icon': Image.asset('assets/cleanhouse.png',color: primary1,)},
     {'text': 'Electrician', 'icon': Image.asset('assets/electrician (2).png',color: primary1,)},
@@ -326,47 +328,56 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
       ),
-      bottomNavigationBar: CurvedNavigationBar(
-        backgroundColor: Colors.white,
-        color: Colors.black,
-        buttonBackgroundColor: Colors.yellow.shade700,
-        height: SizeConfig.height(6.5),
-        animationDuration: Duration(milliseconds: 500),
-        onTap: (index) {
-          print(index);
-        },
-        items: [
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Image.asset('assets/home icon.png',width: 25,height: 25,),
-              Text('Home', style: TextStyle(color: Colors.white, fontSize: 10)),
-            ],
-          ),
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Image.asset('assets/call icon.png',width: 25,height: 25,),
-              Text('Call', style: TextStyle(color: Colors.white, fontSize: 10)),
-            ],
-          ),
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Image.asset('assets/loc icon.png',width: 25,height: 25,),
-              Text('Location',
-                  style: TextStyle(color: Colors.white, fontSize: 10)),
-            ],
-          ),
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.save_alt_rounded, color: Colors.white),
-              Text('Save', style: TextStyle(color: Colors.white, fontSize: 10)),
-            ],
-          ),
-        ],
-      ),
+      // bottomNavigationBar: CurvedNavigationBar(
+      //   backgroundColor: Colors.white,
+      //   color: Colors.black,
+      //   buttonBackgroundColor: Colors.yellow.shade700,
+      //   height: SizeConfig.height(6.5),
+      //   animationDuration: Duration(milliseconds: 500),
+      //   onTap: (index) {
+      //     if (index == 1) { // Assuming index 1 is the "Favorite" tab
+      //       Navigator.push(
+      //         context,
+      //         MaterialPageRoute(
+      //           builder: (context) => FavoriteProvidersScreen(
+      //             currentUserId: currentUserId!, // Pass the current user ID
+      //           ),
+      //         ),
+      //       );
+      //     }
+      //   },
+      //   items: [
+      //     Column(
+      //       mainAxisAlignment: MainAxisAlignment.center,
+      //       children: [
+      //         Image.asset('assets/home icon.png',width: 25,height: 25,),
+      //         Text('Home', style: TextStyle(color: Colors.white, fontSize: 10)),
+      //       ],
+      //     ),
+      //     Column(
+      //       mainAxisAlignment: MainAxisAlignment.center,
+      //       children: [
+      //         Image.asset('assets/call icon.png',width: 25,height: 25,),
+      //         Text('Favourite', style: TextStyle(color: Colors.white, fontSize: 10)),
+      //       ],
+      //     ),
+      //     Column(
+      //       mainAxisAlignment: MainAxisAlignment.center,
+      //       children: [
+      //         Image.asset('assets/loc icon.png',width: 25,height: 25,),
+      //         Text('Location',
+      //             style: TextStyle(color: Colors.white, fontSize: 10)),
+      //       ],
+      //     ),
+      //     Column(
+      //       mainAxisAlignment: MainAxisAlignment.center,
+      //       children: [
+      //         Icon(Icons.save_alt_rounded, color: Colors.white),
+      //         Text('Save', style: TextStyle(color: Colors.white, fontSize: 10)),
+      //       ],
+      //     ),
+      //   ],
+      // ),
 
     );
   }

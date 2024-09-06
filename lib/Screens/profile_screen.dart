@@ -2,6 +2,7 @@
 import 'dart:developer';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:css_app/Screens/navigation_screen.dart';
 import 'package:css_app/constants/colors.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -123,7 +124,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 TextButton(
                   onPressed: () {
                     Get.back();
-                    Get.off(HomeScreen());
+                    Get.off(NavigationScreen());
                   },
                   child: Text('Ok'),
                 ),
@@ -261,7 +262,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               SizedBox(height: SizeConfig.height(2.5),),
               Padding(
                 padding: const EdgeInsets.all(5.0),
-                child: MyTextField(controller: yourName, text: 'Enter Your Nmae', color: textfield2,),
+                child: MyTextField(controller: yourName, text: 'Enter Your Name', color: textfield2,),
               ),
               Padding(
                 padding: const EdgeInsets.all(5.0),

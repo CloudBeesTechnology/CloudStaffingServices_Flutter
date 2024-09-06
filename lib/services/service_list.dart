@@ -44,7 +44,7 @@ class ServiceListScreen extends StatelessWidget {
 
                 return GestureDetector(
                   onTap: (){
-                    Navigator.push(context, MaterialPageRoute(builder: (context)=>SelectedProviderDetailsScreen(userId: userId)));
+                    Navigator.push(context, MaterialPageRoute(builder: (context)=>SelectedProviderDetailsScreen(userId: userId, currentUserId: '',)));
                   },
                   child: Padding(
                     padding: const EdgeInsets.only(left: 15,right: 15),
