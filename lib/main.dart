@@ -1,11 +1,4 @@
-
 import 'package:css_app/Screens/home_screen.dart';
-import 'package:css_app/Screens/login_screen.dart';
-import 'package:css_app/Screens/otp_screen.dart';
-import 'package:css_app/Screens/password_screen.dart';
-import 'package:css_app/Screens/profile_screen.dart';
-import 'package:css_app/Screens/signup_screen.dart';
-import 'package:css_app/Screens/walkthrough_screen.dart';
 import 'package:css_app/Screens/welcome_screen.dart';
 import 'package:css_app/firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';

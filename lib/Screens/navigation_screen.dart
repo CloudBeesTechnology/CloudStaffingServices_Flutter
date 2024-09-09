@@ -27,7 +27,7 @@ class _NavigationScreenState extends State<NavigationScreen> {
     screens = [
       HomeScreen(),
       FavoriteProvidersScreen(currentUserId: currentUserId!), // Pass the current user ID
-      HistoryScreen(),
+      HistoryScreen(currentUserId:currentUserId!),
       UserProfileScreen(),
     ];
   }

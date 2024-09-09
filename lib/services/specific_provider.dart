@@ -24,6 +24,7 @@ class SelectedProviderDetailsScreen extends StatefulWidget {
 
 class _SelectedProviderDetailsScreenState extends State<SelectedProviderDetailsScreen> {
   bool _isFavorite = false;
+  bool isBooked=false;
   final currentUserId = FirebaseAuth.instance.currentUser?.uid;
   String number = '+916374195877';  // Placeholder phone number, replace with actual
 
@@ -31,6 +32,71 @@ class _SelectedProviderDetailsScreenState extends State<SelectedProviderDetailsS
   void initState() {
     super.initState();
     _checkIfFavorite();
+    final currentUserId = FirebaseAuth.instance.currentUser?.uid;
+    _checkIfBooked();
+  }
+
+  Future<void> _checkIfBooked() async {
+    if (currentUserId == null) return;
+
+    final doc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(currentUserId)
+        .collection('bookings')  // Change 'favorites' to 'bookings'
+        .doc(widget.userId)
+        .get();
+
+    setState(() {
+      isBooked = doc.exists;  // Check if the provider is already booked
+    });
+  }
+
+  Future<void> _toggleBooking() async {
+    if (currentUserId == null) return;
+
+    if (isBooked) {
+      Get.dialog(
+        AlertDialog(
+          title: Text('Already Booked'),
+          content: Text('This provider is already booked.'),
+          actions: [
+            TextButton(
+              onPressed: () => Get.back(),
+              child: Text('OK'),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
+    // If not booked, add to bookings in Firestore
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(currentUserId)
+        .collection('bookings')  // Store booking details in 'bookings'
+        .doc(widget.userId)
+        .set({
+      'providerId': widget.userId,
+      'timestamp': FieldValue.serverTimestamp(),
+    });
+
+    setState(() {
+      isBooked = true;
+    });
+
+    Get.dialog(
+      AlertDialog(
+        title: Text('Booking Confirmed'),
+        content: Text('The provider has been booked successfully!'),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: Text('OK'),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _checkIfFavorite() async {
@@ -144,7 +210,7 @@ class _SelectedProviderDetailsScreenState extends State<SelectedProviderDetailsS
         future: FirebaseFirestore.instance.collection('dummy users').doc(widget.userId).get(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
+            return Center(child: CircularProgressIndicator(color: Colors.yellow,));
           } else if (snapshot.hasError) {
             return Center(child: Text('An error occurred!'));
           } else if (!snapshot.hasData || !snapshot.data!.exists) {
@@ -244,10 +310,10 @@ class _SelectedProviderDetailsScreenState extends State<SelectedProviderDetailsS
                               Spacer(),
                               Myelavatedbutton(
                                 text: 'Book',
-                                ontap: () {},
+                                ontap: _toggleBooking,
                                 height: 30,
                                 width: 70,
-                                color: buttons,
+                                color: isBooked? Colors.grey:buttons,
                                 color2: Colors.white,
                                 fontSize: 16,
                               ),
