@@ -1,9 +1,12 @@
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:css_app/Screens/profile_screen.dart';
 import 'package:css_app/constants/colors.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
+import 'package:logger/logger.dart';
 
 import '../constants/height_width.dart';
 import '../widgts/myelavatedbutton.dart';
@@ -19,6 +22,7 @@ class _PasswordScreenState extends State<PasswordScreen> {
   TextEditingController newPassword = TextEditingController();
   TextEditingController confirmPassword = TextEditingController();
   bool isLoading = false;
+  final Logger _logger = Logger();
 
 
   bool _validatePassword(String password) {
@@ -30,7 +34,7 @@ class _PasswordScreenState extends State<PasswordScreen> {
   }
 
   // Method to show spinner and navigate to profile screen if conditions are met
-  void _savePassword() {
+  void _savePassword() async {
     if (newPassword.text != confirmPassword.text) {
       _showErrorDialog('Passwords do not match.');
       return;
@@ -43,17 +47,42 @@ class _PasswordScreenState extends State<PasswordScreen> {
 
     setState(() {
       isLoading = true;
-
     });
 
-    // Simulate a network call
-    Future.delayed(Duration(seconds: 2), () {
+    try {
+      // Get the current user's ID
+      final userId = FirebaseAuth.instance.currentUser?.uid;
+
+      if (userId != null) {
+        // Store the password in Firestore under the user's document
+        await FirebaseFirestore.instance.collection('password').doc(userId).set({
+          'password': newPassword.text.trim(),
+        });
+
+        _logger.i('Password updated for user: $userId');
+
+        // Simulate a delay before navigation
+        Future.delayed(Duration(seconds: 2), () {
+          setState(() {
+            isLoading = false;
+          });
+          Get.off(ProfileScreen());
+        });
+      } else {
+        _showErrorDialog('Unable to update password. User not found.');
+        setState(() {
+          isLoading = false;
+        });
+      }
+    } catch (e) {
+      _logger.e('Failed to update password: $e');
+      _showErrorDialog('Failed to update password. Please try again.');
       setState(() {
         isLoading = false;
       });
-      Get.off(ProfileScreen());
-    });
+    }
   }
+
 
   void _showErrorDialog(String message) {
     Get.dialog(

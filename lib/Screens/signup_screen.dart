@@ -1,4 +1,5 @@
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:css_app/constants/colors.dart';
 import 'package:css_app/services/auth_service.dart';
 import 'package:flutter/material.dart';
@@ -54,8 +55,8 @@ class _SignupScreenState extends State<SignupScreen> {
       return;
     }
 
-    if (email.text.isEmpty || password.text.isEmpty || name.text.isEmpty) {
-      _showErrorDialog("All fields are required.");
+    if (email.text.isEmpty || password.text.isEmpty) {
+      _showErrorDialog("Both email/phone and password are required.");
       return;
     }
 
@@ -73,6 +74,13 @@ class _SignupScreenState extends State<SignupScreen> {
           password: password.text.trim(),
         );
         _logger.i('Email registration successful: ${userCredential.user?.email}');
+
+        // Store email in Firestore with collection 'email'
+        await FirebaseFirestore.instance.collection('email').doc(userCredential.user!.uid).set({
+          'email': email.text.trim(),
+          'userId': userCredential.user!.uid,
+        });
+
         await Future.delayed(Duration(milliseconds: 200));
         Get.to(() => PasswordScreen());
       } else {
@@ -82,6 +90,13 @@ class _SignupScreenState extends State<SignupScreen> {
           verificationCompleted: (PhoneAuthCredential credential) async {
             userCredential = await _auth.signInWithCredential(credential);
             _logger.i('Phone verification completed automatically: ${userCredential?.user?.phoneNumber}');
+
+            // Store phone number in Firestore with collection 'phone'
+            await FirebaseFirestore.instance.collection('phone').doc(userCredential!.user!.uid).set({
+              'phoneNumber': email.text.trim(),
+              'userId': userCredential?.user!.uid,
+            });
+
             setState(() {
               isLoading = false;
             });
@@ -129,6 +144,7 @@ class _SignupScreenState extends State<SignupScreen> {
       });
     }
   }
+
 
 
   @override
@@ -284,10 +300,10 @@ class _SignupScreenState extends State<SignupScreen> {
                             ),
                           ],
                         ),
-                                 
+
                     ),
                   ),
-             
+
               ),
               SizedBox(height: SizeConfig.height(1)),
               Row(
