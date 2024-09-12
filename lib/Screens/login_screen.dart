@@ -1,13 +1,16 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:css_app/Screens/password_screen.dart';
 import 'package:css_app/constants/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../constants/height_width.dart';
 import '../widgts/myelavatedbutton.dart';
 import '../widgts/mytextbuttom.dart';
 import '../widgts/mytextfield.dart';
 import 'home_screen.dart';
+import 'navigation_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -21,42 +24,97 @@ class _LoginScreenState extends State<LoginScreen> {
   TextEditingController password1 = TextEditingController();
   bool isLoading = false;
 
-  Future<void> _login() async {
+
+  void _login() async {
+    if (username.text.isEmpty || password1.text.isEmpty) {
+      _showErrorDialog("Both username and password are required.");
+      return;
+    }
+
     setState(() {
       isLoading = true;
     });
 
     try {
-      // Attempt to sign in with email and password
-      UserCredential userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: username.text.trim(),
-        password: password1.text.trim(),
-      );
+      QuerySnapshot usernameSnapshot = await FirebaseFirestore.instance
+          .collection('dummy users')
+          .where('name', isEqualTo: username.text.trim())
+          .get();
 
-      // If successful, navigate to the home screen
-      Get.to(() => PasswordScreen());
-    } on FirebaseAuthException catch (e) {
-      Get.dialog(
-        AlertDialog(
-          title: Text('Login Failed'),
-          content: Text(e.message ?? 'An error occurred during login.'),
-          actions: [
-            TextButton(
-              onPressed: () => Get.back(),
-              child: Text('OK'),
-            ),
-          ],
-        ),
-      );
+      if (usernameSnapshot.docs.isNotEmpty) {
+        var userData = usernameSnapshot.docs.first;
+
+        Map<String, dynamic>? userMap = userData.data() as Map<String, dynamic>?;
+        if (userMap != null && userMap.containsKey('userId')) {
+          String userId = userMap['userId'];
+
+          DocumentSnapshot passwordDoc = await FirebaseFirestore.instance
+              .collection('password')
+              .doc(userId)
+              .get();
+
+          Map<String, dynamic>? passwordMap = passwordDoc.data() as Map<String, dynamic>?;
+          if (passwordMap != null && passwordMap.containsKey('password')) {
+            String storedPassword = passwordMap['password'];
+            if (storedPassword == password1.text.trim()) {
+              // Save username and password in SharedPreferences
+              SharedPreferences prefs = await SharedPreferences.getInstance();
+              await prefs.setString('username', username.text.trim());
+              await prefs.setString('password', password1.text.trim());
+
+              // Navigate to the next screen
+              Get.off(() => NavigationScreen());
+            } else {
+              _showErrorDialog("Incorrect password.");
+            }
+          } else {
+            _showErrorDialog("No password found for this user.");
+          }
+        } else {
+          _showErrorDialog("User data is invalid.");
+        }
+      } else {
+        _showErrorDialog("Username not found.");
+      }
+    } catch (e) {
+      _showErrorDialog("An error occurred: $e");
     } finally {
       setState(() {
         isLoading = false;
-        username.clear();
-        password1.clear();
       });
     }
   }
 
+  void _showErrorDialog(String message) {
+    Get.dialog(
+      AlertDialog(
+        title: Text('Error'),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+  @override
+  void initState() {
+    super.initState();
+    _checkLoginStatus();
+  }
+
+  void _checkLoginStatus() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? savedUsername = prefs.getString('username');
+    String? savedPassword = prefs.getString('password');
+
+    if (savedUsername != null && savedPassword != null) {
+      // Automatically log the user in and navigate to the NavigationScreen
+      Get.off(() => NavigationScreen());
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -64,12 +122,7 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios, color: primary1),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
+        automaticallyImplyLeading: false,
       ),
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -123,6 +176,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 icon: Icons.lock_open,
                 color: Colors.black,
                 clr: Colors.black,
+                // obscureText: true, // Add this to obscure the password
               ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -169,17 +223,16 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               SizedBox(height: SizeConfig.height(2.0)),
               isLoading
-                  ? CircularProgressIndicator(color: Colors.yellow,)
-             : Myelavatedbutton(
-                text:   'Login',
+                  ? CircularProgressIndicator(color: Colors.yellow)
+                  : Myelavatedbutton(
+                text: 'Login',
                 height: SizeConfig.height(5.5),
                 width: SizeConfig.width(80),
-                ontap:  _login,  // Disable button if loading
+                ontap: _login,
                 color: buttons,
                 color2: secondary,
                 fontSize: 16,
               ),
-
             ],
           ),
         ),
@@ -187,5 +240,6 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 }
+
 
 

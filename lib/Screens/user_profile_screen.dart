@@ -1,8 +1,11 @@
+import 'package:css_app/Screens/login_screen.dart';
+import 'package:css_app/Screens/welcome_screen.dart';
 import 'package:css_app/widgts/myelavatedbutton.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../constants/colors.dart';
 import 'edit_profile_screen.dart';
@@ -69,6 +72,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         automaticallyImplyLeading: false,
         backgroundColor: Colors.white,
       ),
+      backgroundColor: Colors.white,
       body: FutureBuilder<Map<String, dynamic>>(
         future: _fetchUserData(),
         builder: (context, snapshot) {
@@ -141,13 +145,42 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                       ),
                       Myelavatedbutton(
                         text: 'Log out',
-                        ontap: () {},
+                        ontap: () async {
+                          Get.dialog(
+                            AlertDialog(
+                              title: Text('Log out'),
+                              content: Text('Are you sure you want to log out?'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () {
+                                    // Close the dialog
+                                    Get.back();
+                                  },
+                                  child: Text('No'),
+                                ),
+                                TextButton(
+                                  onPressed: () async {
+                                    // Clear SharedPreferences and log out
+                                    SharedPreferences prefs = await SharedPreferences.getInstance();
+                                    await prefs.clear();
+
+                                    // Navigate to the login screen
+                                    Get.offAll(() => LoginScreen());
+                                  },
+                                  child: Text('Yes'),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
                         height: 30,
                         width: 250,
                         color: login,
                         color2: secondary,
                         fontSize: 16,
                       ),
+
+
                     ],
                   ),
                 ),

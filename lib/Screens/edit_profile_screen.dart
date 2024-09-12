@@ -139,7 +139,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       appBar: AppBar(
         title: const Text('Edit Profile'),
         centerTitle: true,
+        backgroundColor: Colors.white,
       ),
+      backgroundColor: Colors.white,
       body: isLoading
           ? const Center(child: CircularProgressIndicator(color: Colors.yellow,))
           : Center(

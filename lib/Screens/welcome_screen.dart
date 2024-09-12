@@ -1,13 +1,21 @@
 
 import 'package:css_app/Screens/signup_screen.dart';
+import 'package:css_app/Screens/welcome_screen.dart';
 import 'package:css_app/constants/colors.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../constants/height_width.dart';
 import '../widgts/myelavatedbutton.dart';
 import 'login_screen.dart';
-class WelcomeScreen extends StatelessWidget {
+class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
+
+  @override
+  State<WelcomeScreen> createState() => _WelcomeScreenState();
+}
+
+class _WelcomeScreenState extends State<WelcomeScreen> {
 
   @override
   Widget build(BuildContext context) {
